@@ -1,13 +1,28 @@
 // All communication with the backend goes through these functions.
 // The frontend never talks to the database directly.
 
-async function request(url) {
-  const response = await fetch(url);
+const TOKEN_KEY = "techmart_token";
+
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
+export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+async function request(url, { method = "GET", body, auth = false } = {}) {
+  const headers = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const token = getToken();
+  if (auth && token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
     try {
-      const body = await response.json();
-      if (body.message) message = body.message;
+      const data = await response.json();
+      if (data.message) message = data.message;
     } catch {
       /* response had no JSON body */
     }
@@ -18,6 +33,7 @@ async function request(url) {
   return response.json();
 }
 
+// ---- Part 1: products (public) ----
 export function fetchProducts({ search, categoryId, minPrice, maxPrice, sort } = {}) {
   const params = new URLSearchParams();
   if (search) params.set("search", search);
@@ -36,6 +52,27 @@ export function fetchProduct(id) {
 export function fetchCategories() {
   return request("/api/categories");
 }
+
+// ---- Part 2: authentication ----
+export const registerUser = (name, email, password) =>
+  request("/api/auth/register", { method: "POST", body: { name, email, password } });
+
+export const loginUser = (email, password) =>
+  request("/api/auth/login", { method: "POST", body: { email, password } });
+
+export const fetchMe = () => request("/api/auth/me", { auth: true });
+
+// ---- Part 2: cart (needs login) ----
+export const fetchCart = () => request("/api/cart", { auth: true });
+
+export const addCartItem = (productId, quantity) =>
+  request("/api/cart/items", { method: "POST", body: { productId, quantity }, auth: true });
+
+export const updateCartItem = (itemId, quantity) =>
+  request(`/api/cart/items/${itemId}`, { method: "PUT", body: { quantity }, auth: true });
+
+export const removeCartItem = (itemId) =>
+  request(`/api/cart/items/${itemId}`, { method: "DELETE", auth: true });
 
 export function formatPrice(value) {
   return new Intl.NumberFormat("en-IN", {

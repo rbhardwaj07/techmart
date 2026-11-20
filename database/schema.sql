@@ -2,6 +2,12 @@
 CREATE DATABASE IF NOT EXISTS techmart CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE techmart;
 
+-- Part 2 tables / migration history are dropped first so this script can still reset everything.
+DROP TABLE IF EXISTS cart_items;
+DROP TABLE IF EXISTS carts;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS flyway_schema_history;
+
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 

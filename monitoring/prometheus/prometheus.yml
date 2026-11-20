@@ -1,0 +1,16 @@
+# Prometheus configuration: scrape the Spring Boot backend every 5 seconds.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: techmart-backend
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # The backend runs on the host machine (port 8080); "host.docker.internal" is how the
+      # Prometheus container reaches it (mapped to the host in docker-compose.yml).
+      - targets: ["host.docker.internal:8080"]
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
