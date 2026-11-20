@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatPrice } from "../api.js";
+import AddToCartButton from "./AddToCartButton.jsx";
 
 export default function ProductCard({ product }) {
+  const [note, setNote] = useState(null);
   return (
     <article className="card">
       <Link to={`/products/${product.id}`} className="card-image">
@@ -18,6 +21,10 @@ export default function ProductCard({ product }) {
           <Link to={`/products/${product.id}`} className="btn btn-small">
             View details
           </Link>
+        </div>
+        <div className="card-actions">
+          <AddToCartButton product={product} onResult={setNote} />
+          {note && <span className={note.ok ? "note ok" : "note err"}>{note.message}</span>}
         </div>
       </div>
     </article>
